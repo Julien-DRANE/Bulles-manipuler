@@ -45,19 +45,17 @@ function addShape(type) {
 
     switch(type) {
         case 'circle':
-            shape = new fabric.Circle({
-                ...options,
+            shape = new fabric.Circle(Object.assign({}, options, {
                 radius: 50,
-            });
+            }));
             break;
         case 'rectangle':
-            shape = new fabric.Rect({
-                ...options,
+            shape = new fabric.Rect(Object.assign({}, options, {
                 width: 150,
                 height: 100,
                 rx: 15, // Bords arrondis
                 ry: 15,
-            });
+            }));
             break;
         case 'arrow':
             shape = createArrow(strokeColor);
@@ -145,9 +143,15 @@ function createArrow(color) {
     return group;
 }
 
+// Variables pour la détection du double-clic
+let lastClickTime = 0;
+const doubleClickThreshold = 500; // millisecondes
+
 // Événement pour éditer le texte via double-clic
-canvas.on('mouse:dblclick', function(options) {
-    if (options.target && options.target.type === 'group') {
+canvas.on('mouse:down', function(options) {
+    const currentTime = new Date().getTime();
+    const delta = currentTime - lastClickTime;
+    if (delta < doubleClickThreshold && options.target && options.target.type === 'group') {
         const group = options.target;
         const text = group.getObjects('i-text')[0];
         if (text) {
@@ -159,6 +163,7 @@ canvas.on('mouse:dblclick', function(options) {
             text.selectAll();
         }
     }
+    lastClickTime = currentTime;
 });
 
 // Événement pour ajuster la forme après modification du texte
@@ -196,8 +201,8 @@ canvas.on('text:changed', function(e) {
 
                 // Centrer le texte dans la forme
                 text.set({
-                    left: shape.left + shape.width / 2,
-                    top: shape.top + shape.height / 2,
+                    left: 0,
+                    top: 0,
                 });
 
                 group.setCoords();
@@ -225,12 +230,23 @@ saveBtn.addEventListener('click', () => {
     alert('Page sauvegardée avec succès!');
 });
 
-// Charger le canevas depuis le localStorage
+// Sauvegarder le canevas en téléchargeant un fichier JSON
+saveBtn.addEventListener('dblclick', () => {
+    const json = JSON.stringify(canvas.toJSON());
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'canvas-sauvegarde.json';
+    link.click();
+    URL.revokeObjectURL(url);
+});
+
+// Charger le canevas depuis un fichier JSON
 loadBtn.addEventListener('click', () => {
     loadFileInput.click();
 });
 
-// Charger depuis un fichier JSON
 loadFileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -246,14 +262,13 @@ loadFileInput.addEventListener('change', (e) => {
     reader.readAsText(file);
 });
 
-// Optionnel : Téléchargement du JSON de sauvegarde
-saveBtn.addEventListener('dblclick', () => {
-    const json = JSON.stringify(canvas.toJSON());
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'canvas-sauvegarde.json';
-    link.click();
-    URL.revokeObjectURL(url);
-});
+// Charger le canevas depuis le localStorage lors du chargement de la page
+window.onload = function() {
+    const json = localStorage.getItem('canvas');
+    if (json) {
+        canvas.loadFromJSON(json, () => {
+            canvas.renderAll();
+            alert('Page chargée depuis le localStorage!');
+        });
+    }
+};
