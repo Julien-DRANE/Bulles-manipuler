@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Outil de création de formes interactives</title>
+  <title>Outil de création</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -13,13 +13,14 @@
     <button id="style-button">Styler le texte</button>
     <div id="add-menu" class="hidden">
       <h3>Ajouter un élément</h3>
-      <label>Type de forme :
+      <label>Type d’élément :
         <select id="shape-type">
           <option value="rounded-rect">Rectangle arrondi</option>
           <option value="circle">Cercle</option>
           <option value="bubble">Bulle (ellipse)</option>
           <option value="line">Trait</option>
           <option value="arrow">Flèche</option>
+          <option value="image">Image</option>
         </select>
       </label>
       <br/>
@@ -27,10 +28,14 @@
         <input type="color" id="shape-color" value="#000000"/>
       </label>
       <br/>
+      <div id="image-input-container" class="hidden">
+        <label>Fichier image :
+          <input type="file" id="image-file" accept="image/png, image/jpeg"/>
+        </label>
+      </div>
       <button id="create-shape">Créer</button>
     </div>
 
-    <!-- Menu de style du texte -->
     <div id="text-style-menu" class="hidden">
       <h3>Style du texte</h3>
       <label>Taille :
@@ -38,8 +43,10 @@
           <option value="12px">12px</option>
           <option value="14px" selected>14px</option>
           <option value="16px">16px</option>
+          <option value="18px">18px</option>
           <option value="24px">24px</option>
           <option value="32px">32px</option>
+          <option value="48px">48px</option>
           <option value="64px">64px</option>
         </select>
       </label>
@@ -66,7 +73,7 @@
   </header>
 
   <div id="canvas-container">
-    <!-- Les formes et lignes seront insérées ici -->
+    <!-- Les formes, lignes et images seront insérées ici -->
   </div>
 
   <script src="script.js"></script>

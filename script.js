@@ -6,20 +6,22 @@ const addMenu = document.getElementById('add-menu');
 const createShapeBtn = document.getElementById('create-shape');
 const shapeTypeSelect = document.getElementById('shape-type');
 const shapeColorInput = document.getElementById('shape-color');
+const imageInputContainer = document.getElementById('image-input-container');
+const imageFileInput = document.getElementById('image-file');
+
 const canvas = document.getElementById('canvas-container');
 
 const saveButton = document.getElementById('save-button');
 const loadButton = document.getElementById('load-button');
 const fileInput = document.getElementById('file-input');
 
-// Menu de style du texte
 const textStyleMenu = document.getElementById('text-style-menu');
 const fontSizeSelect = document.getElementById('font-size-select');
 const fontFamilySelect = document.getElementById('font-family-select');
 const applyStyleBtn = document.getElementById('apply-style');
 
 // Variables globales
-let shapes = []; // stocke les données des formes et lignes
+let shapes = [];
 let isMenuOpen = false;
 let currentDrag = null;
 let offsetX = 0, offsetY = 0;
@@ -31,15 +33,35 @@ addButton.addEventListener('click', () => {
   addMenu.classList.toggle('hidden', !isMenuOpen);
 });
 
-// Créer une nouvelle forme ou ligne
+// Affichage conditionnel de l'input image selon le type sélectionné
+shapeTypeSelect.addEventListener('change', () => {
+  if (shapeTypeSelect.value === 'image') {
+    imageInputContainer.classList.remove('hidden');
+  } else {
+    imageInputContainer.classList.add('hidden');
+  }
+});
+
+// Création d’un élément
 createShapeBtn.addEventListener('click', () => {
   const type = shapeTypeSelect.value;
   const color = shapeColorInput.value;
+
   if (type === 'line' || type === 'arrow') {
     createLineOrArrow(type, color);
+  } else if (type === 'image') {
+    const file = imageFileInput.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        createImageElement(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
   } else {
     createShape(type, color);
   }
+
   addMenu.classList.add('hidden');
   isMenuOpen = false;
 });
@@ -58,12 +80,10 @@ deleteButton.addEventListener('click', () => {
 
 // Bouton de style du texte
 styleButton.addEventListener('click', () => {
-  // Le menu de style n'apparaît que si un élément texte est sélectionné
   if (selectedElement && selectedElement.classList.contains('shape')) {
-    // Récupérer les infos depuis shapes
     const index = Array.from(canvas.children).indexOf(selectedElement);
     if (shapes[index]) {
-      const fontSize = shapes[index].fontSize || '10px';
+      const fontSize = shapes[index].fontSize || '14px';
       const fontFamily = shapes[index].fontFamily || 'sans-serif';
       fontSizeSelect.value = fontSize;
       fontFamilySelect.value = fontFamily;
@@ -74,7 +94,7 @@ styleButton.addEventListener('click', () => {
   }
 });
 
-// Appliquer le style
+// Appliquer le style texte
 applyStyleBtn.addEventListener('click', () => {
   if (selectedElement && selectedElement.classList.contains('shape')) {
     const index = Array.from(canvas.children).indexOf(selectedElement);
@@ -91,11 +111,11 @@ applyStyleBtn.addEventListener('click', () => {
   textStyleMenu.classList.add('hidden');
 });
 
-// Fonction pour créer une forme (bulle, cercle, rectangle arrondi)
+// Fonction pour créer une forme
 function createShape(type, color) {
   const div = document.createElement('div');
   div.classList.add('shape', type);
-  div.contentEditable = true; // permet d'éditer le texte
+  div.contentEditable = true;
   div.style.borderColor = color;
 
   // Position par défaut
@@ -107,7 +127,6 @@ function createShape(type, color) {
   div.style.fontSize = '30px';
   div.style.fontFamily = 'sans-serif';
 
-  // Evénements
   div.addEventListener('mousedown', startDrag);
   div.addEventListener('input', autoResize);
   div.addEventListener('click', (e) => {
@@ -130,14 +149,81 @@ function createShape(type, color) {
 }
 
 function autoResize(e) {
-  // Ajuster éventuellement la taille. Pour l'instant, on laisse en auto.
+  // Ajustement auto du texte si nécessaire
 }
 
-// Déplacement des formes
+// Création d'une image
+function createImageElement(src) {
+  const container = document.createElement('div');
+  container.classList.add('image-container');
+
+  const img = document.createElement('img');
+  img.src = src;
+  container.appendChild(img);
+
+  const rect = canvas.getBoundingClientRect();
+  const defaultWidth = 100;
+  const defaultHeight = 100;
+  container.style.width = defaultWidth + 'px';
+  container.style.height = defaultHeight + 'px';
+  container.style.left = (rect.width / 2 - defaultWidth/2) + 'px';
+  container.style.top = (rect.height / 2 - defaultHeight/2) + 'px';
+
+  const resizeHandle = document.createElement('div');
+  resizeHandle.classList.add('image-resize-handle');
+  container.appendChild(resizeHandle);
+
+  container.addEventListener('mousedown', startDrag);
+  container.addEventListener('click', (e) => {
+    e.stopPropagation();
+    selectedElement = container;
+  });
+
+  resizeHandle.addEventListener('mousedown', startResize);
+
+  canvas.appendChild(container);
+
+  const shapeData = {
+    type: 'image',
+    x: parseInt(container.style.left),
+    y: parseInt(container.style.top),
+    width: defaultWidth,
+    height: defaultHeight,
+    src: src
+  };
+  shapes.push(shapeData);
+
+  function startResize(e) {
+    e.stopPropagation();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startWidth = container.offsetWidth;
+    const startHeight = container.offsetHeight;
+
+    function resizing(ev) {
+      const dx = ev.clientX - startX;
+      const dy = ev.clientY - startY;
+      container.style.width = (startWidth + dx) + 'px';
+      container.style.height = (startHeight + dy) + 'px';
+      updateImageData(container);
+    }
+
+    function stopResize() {
+      document.removeEventListener('mousemove', resizing);
+      document.removeEventListener('mouseup', stopResize);
+    }
+
+    document.addEventListener('mousemove', resizing);
+    document.addEventListener('mouseup', stopResize);
+  }
+}
+
+// Déplacement des formes et images
 function startDrag(e) {
-  if (e.target.classList.contains('shape')) {
+  if (e.target.classList.contains('shape') || e.target.classList.contains('image-container')) {
     currentDrag = e.target;
     const rect = currentDrag.getBoundingClientRect();
+    const canvasRect = canvas.getBoundingClientRect();
     offsetX = e.clientX - rect.left;
     offsetY = e.clientY - rect.top;
 
@@ -155,7 +241,6 @@ function drag(e) {
     currentDrag.style.left = x + 'px';
     currentDrag.style.top = y + 'px';
 
-    // Mettre à jour les données dans shapes
     updateShapeData(currentDrag, x, y);
   }
 }
@@ -173,11 +258,22 @@ function updateShapeData(el, x, y) {
     shapes[index].y = y;
     if (el.classList.contains('shape')) {
       shapes[index].text = el.innerText;
+    } else if (el.classList.contains('image-container')) {
+      shapes[index].width = el.offsetWidth;
+      shapes[index].height = el.offsetHeight;
     }
   }
 }
 
-// Création de lignes / flèches
+function updateImageData(el) {
+  const index = Array.from(canvas.children).indexOf(el);
+  if (shapes[index]) {
+    shapes[index].width = el.offsetWidth;
+    shapes[index].height = el.offsetHeight;
+  }
+}
+
+// Fonction pour créer une ligne ou une flèche
 function createLineOrArrow(type, color, x1 = 100, y1 = 100, x2 = 200, y2 = 100) {
   const container = document.createElement('div');
   container.classList.add('line-container');
@@ -203,8 +299,8 @@ function createLineOrArrow(type, color, x1 = 100, y1 = 100, x2 = 200, y2 = 100) 
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
     const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
     marker.setAttribute('id', 'arrowhead');
-    marker.setAttribute('markerWidth', '50');
-    marker.setAttribute('markerHeight', '34');
+    marker.setAttribute('markerWidth', '20');
+    marker.setAttribute('markerHeight', '14');
     marker.setAttribute('refX', '0');
     marker.setAttribute('refY', '7');
     marker.setAttribute('orient', 'auto');
@@ -345,7 +441,7 @@ function createLineOrArrow(type, color, x1 = 100, y1 = 100, x2 = 200, y2 = 100) 
   });
 }
 
-// Sauvegarde (export JSON)
+// Sauvegarder
 saveButton.addEventListener('click', () => {
   const elements = Array.from(canvas.children);
   elements.forEach((el, i) => {
@@ -353,9 +449,13 @@ saveButton.addEventListener('click', () => {
       shapes[i].text = el.innerText;
       shapes[i].x = parseInt(el.style.left);
       shapes[i].y = parseInt(el.style.top);
-      // Mises à jour de la font
       shapes[i].fontSize = el.style.fontSize || '14px';
       shapes[i].fontFamily = el.style.fontFamily || 'sans-serif';
+    } else if (el.classList.contains('image-container')) {
+      shapes[i].x = parseInt(el.style.left);
+      shapes[i].y = parseInt(el.style.top);
+      shapes[i].width = el.offsetWidth;
+      shapes[i].height = el.offsetHeight;
     }
   });
 
@@ -370,7 +470,7 @@ saveButton.addEventListener('click', () => {
   URL.revokeObjectURL(url);
 });
 
-// Chargement (import JSON)
+// Charger
 loadButton.addEventListener('click', () => {
   fileInput.click();
 });
@@ -388,7 +488,6 @@ fileInput.addEventListener('change', (e) => {
 });
 
 function loadLayout(data) {
-  // Vider le canvas
   canvas.innerHTML = '';
   shapes = data;
 
@@ -414,12 +513,59 @@ function loadLayout(data) {
       canvas.appendChild(div);
     } else if (shapeData.type === 'line' || shapeData.type === 'arrow') {
       createLineOrArrow(shapeData.type, shapeData.color, shapeData.x1, shapeData.y1, shapeData.x2, shapeData.y2);
+    } else if (shapeData.type === 'image') {
+      const container = document.createElement('div');
+      container.classList.add('image-container');
+      container.style.left = shapeData.x + 'px';
+      container.style.top = shapeData.y + 'px';
+      container.style.width = shapeData.width + 'px';
+      container.style.height = shapeData.height + 'px';
+
+      const img = document.createElement('img');
+      img.src = shapeData.src;
+      container.appendChild(img);
+
+      const resizeHandle = document.createElement('div');
+      resizeHandle.classList.add('image-resize-handle');
+      container.appendChild(resizeHandle);
+
+      container.addEventListener('mousedown', startDrag);
+      container.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectedElement = container;
+      });
+
+      resizeHandle.addEventListener('mousedown', function(e) {
+        e.stopPropagation();
+        const startX = e.clientX;
+        const startY = e.clientY;
+        const startWidth = container.offsetWidth;
+        const startHeight = container.offsetHeight;
+
+        function resizing(ev) {
+          const dx = ev.clientX - startX;
+          const dy = ev.clientY - startY;
+          container.style.width = (startWidth + dx) + 'px';
+          container.style.height = (startHeight + dy) + 'px';
+          updateImageData(container);
+        }
+
+        function stopResize() {
+          document.removeEventListener('mousemove', resizing);
+          document.removeEventListener('mouseup', stopResize);
+        }
+
+        document.addEventListener('mousemove', resizing);
+        document.addEventListener('mouseup', stopResize);
+      });
+
+      canvas.appendChild(container);
     }
   });
 }
 
-// Cliquer en dehors pour désélectionner si souhaité
+// (Optionnel) Pour désélectionner en cliquant ailleurs
 document.body.addEventListener('click', () => {
-  // Vous pouvez décommenter pour désélectionner quand on clique ailleurs
+  // Désélectionner si on clique ailleurs
   // selectedElement = null;
 }, true);

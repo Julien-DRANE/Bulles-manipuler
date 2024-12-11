@@ -6,7 +6,7 @@ body {
   
   header {
     background: #e0e0e0;
-    padding: 15px;
+    padding: 10px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -28,9 +28,11 @@ body {
     display: none;
   }
   
+  /* Menus, positionnés au-dessus du header, en utilisant une position absolue 
+     avec des valeurs négatives pour top afin qu'ils apparaissent au-dessus */
   #add-menu {
     position: absolute;
-    top: -160px; /* Ajustez si nécessaire pour afficher le menu au-dessus du header */
+    bottom: 60px; /* Au-dessus du header */
     left: 10px;
     background: white;
     border: 1px solid #ccc;
@@ -40,7 +42,7 @@ body {
   
   #text-style-menu {
     position: absolute;
-    top: -160px; /* Ajustez si nécessaire */
+    bottom: 60px; /* Au-dessus du header */
     left: 60px;
     background: white;
     border: 1px solid #ccc;
@@ -65,7 +67,7 @@ body {
   .shape {
     position: absolute;
     border: 2px solid black;
-    padding: 30px;
+    padding: 25px;
     background: white;
     overflow: hidden;
     min-width: 50px;
@@ -115,6 +117,33 @@ body {
     border-radius: 50%;
     cursor: pointer;
     z-index: 9999;
-    pointer-events: auto;
+    pointer-events: auto; 
+  }
+  
+  /* Conteneur pour les images */
+  .image-container {
+    position: absolute;
+    border: 2px solid black;
+    background: #fff;
+    overflow: hidden;
+    cursor: move;
+  }
+  
+  .image-container img {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+  }
+  
+  .image-resize-handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: blue;
+    border: 2px solid #000;
+    border-radius: 50%;
+    cursor: nwse-resize;
+    bottom: 0;
+    right: 0;
   }
   
