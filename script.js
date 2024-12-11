@@ -27,6 +27,11 @@ let currentDrag = null;
 let offsetX = 0, offsetY = 0;
 let selectedElement = null;
 
+// Pour distinguer un clic d'un drag
+let startX = 0, startY = 0;
+let isDragging = false;
+const DRAG_THRESHOLD = 5; // px
+
 // Afficher / Cacher le menu d’ajout
 addButton.addEventListener('click', () => {
   isMenuOpen = !isMenuOpen;
@@ -127,7 +132,7 @@ function createShape(type, color) {
   div.style.fontSize = '30px';
   div.style.fontFamily = 'sans-serif';
 
-  div.addEventListener('mousedown', startDrag);
+  div.addEventListener('pointerdown', startDrag);
   div.addEventListener('input', autoResize);
   div.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -173,13 +178,13 @@ function createImageElement(src) {
   resizeHandle.classList.add('image-resize-handle');
   container.appendChild(resizeHandle);
 
-  container.addEventListener('mousedown', startDrag);
+  container.addEventListener('pointerdown', startDrag);
   container.addEventListener('click', (e) => {
     e.stopPropagation();
     selectedElement = container;
   });
 
-  resizeHandle.addEventListener('mousedown', startResize);
+  resizeHandle.addEventListener('pointerdown', startResize);
 
   canvas.appendChild(container);
 
@@ -195,12 +200,14 @@ function createImageElement(src) {
 
   function startResize(e) {
     e.stopPropagation();
+    e.preventDefault();
     const startX = e.clientX;
     const startY = e.clientY;
     const startWidth = container.offsetWidth;
     const startHeight = container.offsetHeight;
 
     function resizing(ev) {
+      ev.preventDefault();
       const dx = ev.clientX - startX;
       const dy = ev.clientY - startY;
       container.style.width = (startWidth + dx) + 'px';
@@ -209,17 +216,20 @@ function createImageElement(src) {
     }
 
     function stopResize() {
-      document.removeEventListener('mousemove', resizing);
-      document.removeEventListener('mouseup', stopResize);
+      document.removeEventListener('pointermove', resizing);
+      document.removeEventListener('pointerup', stopResize);
     }
 
-    document.addEventListener('mousemove', resizing);
-    document.addEventListener('mouseup', stopResize);
+    document.addEventListener('pointermove', resizing, { passive: false });
+    document.addEventListener('pointerup', stopResize, { passive: false });
   }
 }
 
-// Déplacement des formes et images
+// Déplacement des formes et images avec un seuil
 function startDrag(e) {
+  e.stopPropagation();
+  // NE PAS appeler preventDefault ici pour laisser le focus possible sur contentEditable
+
   if (e.target.classList.contains('shape') || e.target.classList.contains('image-container')) {
     currentDrag = e.target;
     const rect = currentDrag.getBoundingClientRect();
@@ -227,13 +237,26 @@ function startDrag(e) {
     offsetX = e.clientX - rect.left;
     offsetY = e.clientY - rect.top;
 
-    document.addEventListener('mousemove', drag);
-    document.addEventListener('mouseup', endDrag);
+    startX = e.clientX;
+    startY = e.clientY;
+    isDragging = false;
+
+    document.addEventListener('pointermove', drag, { passive: false });
+    document.addEventListener('pointerup', endDrag, { passive: false });
   }
 }
 
 function drag(e) {
-  if (currentDrag) {
+  const distX = Math.abs(e.clientX - startX);
+  const distY = Math.abs(e.clientY - startY);
+
+  // Si le curseur bouge plus que le seuil, on considère qu'on fait un drag
+  if (!isDragging && (distX > DRAG_THRESHOLD || distY > DRAG_THRESHOLD)) {
+    isDragging = true;
+  }
+
+  if (isDragging && currentDrag) {
+    e.preventDefault(); // Empêche le scroll sur mobile pendant le drag
     const canvasRect = canvas.getBoundingClientRect();
     let x = e.clientX - canvasRect.left - offsetX;
     let y = e.clientY - canvasRect.top - offsetY;
@@ -246,9 +269,10 @@ function drag(e) {
 }
 
 function endDrag(e) {
-  document.removeEventListener('mousemove', drag);
-  document.removeEventListener('mouseup', endDrag);
+  document.removeEventListener('pointermove', drag);
+  document.removeEventListener('pointerup', endDrag);
   currentDrag = null;
+  // Si isDragging est false, c'était juste un clic, donc pas de déplacement
 }
 
 function updateShapeData(el, x, y) {
@@ -345,27 +369,28 @@ function createLineOrArrow(type, color, x1 = 100, y1 = 100, x2 = 200, y2 = 100) 
   let currentHandle = null;
   let offsetHX = 0, offsetHY = 0;
 
-  handle1.addEventListener('mousedown', (e) => {
+  handle1.addEventListener('pointerdown', (e) => {
     e.stopPropagation();
-    currentHandle = handle1;
-    startHandleDrag(e);
-  });
-
-  handle2.addEventListener('mousedown', (e) => {
-    e.stopPropagation();
-    currentHandle = handle2;
-    startHandleDrag(e);
-  });
-
-  function startHandleDrag(e) {
     const rect = canvas.getBoundingClientRect();
-    offsetHX = e.clientX - (rect.left + parseInt(currentHandle.style.left));
-    offsetHY = e.clientY - (rect.top + parseInt(currentHandle.style.top));
-    document.addEventListener('mousemove', handleDrag);
-    document.addEventListener('mouseup', handleDrop);
-  }
+    offsetHX = e.clientX - (rect.left + parseInt(handle1.style.left));
+    offsetHY = e.clientY - (rect.top + parseInt(handle1.style.top));
+    currentHandle = handle1;
+    document.addEventListener('pointermove', handleDrag, { passive: false });
+    document.addEventListener('pointerup', handleDrop, { passive: false });
+  });
+
+  handle2.addEventListener('pointerdown', (e) => {
+    e.stopPropagation();
+    const rect = canvas.getBoundingClientRect();
+    offsetHX = e.clientX - (rect.left + parseInt(handle2.style.left));
+    offsetHY = e.clientY - (rect.top + parseInt(handle2.style.top));
+    currentHandle = handle2;
+    document.addEventListener('pointermove', handleDrag, { passive: false });
+    document.addEventListener('pointerup', handleDrop, { passive: false });
+  });
 
   function handleDrag(e) {
+    e.preventDefault();
     const rect = canvas.getBoundingClientRect();
     let hx = e.clientX - rect.left - offsetHX;
     let hy = e.clientY - rect.top - offsetHY;
@@ -395,17 +420,18 @@ function createLineOrArrow(type, color, x1 = 100, y1 = 100, x2 = 200, y2 = 100) 
   }
 
   function handleDrop(e) {
-    document.removeEventListener('mousemove', handleDrag);
-    document.removeEventListener('mouseup', handleDrop);
+    document.removeEventListener('pointermove', handleDrag);
+    document.removeEventListener('pointerup', handleDrop);
     currentHandle = null;
   }
 
-  line.addEventListener('mousedown', (e) => {
+  line.addEventListener('pointerdown', (e) => {
     e.stopPropagation();
     let startX = e.clientX;
     let startY = e.clientY;
 
     function moveLine(ev) {
+      ev.preventDefault();
       let dx = ev.clientX - startX;
       let dy = ev.clientY - startY;
       x1 += dx; y1 += dy;
@@ -432,12 +458,12 @@ function createLineOrArrow(type, color, x1 = 100, y1 = 100, x2 = 200, y2 = 100) 
     }
 
     function stopMoveLine() {
-      document.removeEventListener('mousemove', moveLine);
-      document.removeEventListener('mouseup', stopMoveLine);
+      document.removeEventListener('pointermove', moveLine);
+      document.removeEventListener('pointerup', stopMoveLine);
     }
 
-    document.addEventListener('mousemove', moveLine);
-    document.addEventListener('mouseup', stopMoveLine);
+    document.addEventListener('pointermove', moveLine, { passive: false });
+    document.addEventListener('pointerup', stopMoveLine, { passive: false });
   });
 }
 
@@ -503,7 +529,7 @@ function loadLayout(data) {
       div.style.fontSize = shapeData.fontSize || '14px';
       div.style.fontFamily = shapeData.fontFamily || 'sans-serif';
 
-      div.addEventListener('mousedown', startDrag);
+      div.addEventListener('pointerdown', startDrag);
       div.addEventListener('input', autoResize);
       div.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -529,20 +555,22 @@ function loadLayout(data) {
       resizeHandle.classList.add('image-resize-handle');
       container.appendChild(resizeHandle);
 
-      container.addEventListener('mousedown', startDrag);
+      container.addEventListener('pointerdown', startDrag);
       container.addEventListener('click', (e) => {
         e.stopPropagation();
         selectedElement = container;
       });
 
-      resizeHandle.addEventListener('mousedown', function(e) {
+      resizeHandle.addEventListener('pointerdown', function(e) {
         e.stopPropagation();
+        e.preventDefault();
         const startX = e.clientX;
         const startY = e.clientY;
         const startWidth = container.offsetWidth;
         const startHeight = container.offsetHeight;
 
         function resizing(ev) {
+          ev.preventDefault();
           const dx = ev.clientX - startX;
           const dy = ev.clientY - startY;
           container.style.width = (startWidth + dx) + 'px';
@@ -551,12 +579,12 @@ function loadLayout(data) {
         }
 
         function stopResize() {
-          document.removeEventListener('mousemove', resizing);
-          document.removeEventListener('mouseup', stopResize);
+          document.removeEventListener('pointermove', resizing);
+          document.removeEventListener('pointerup', stopResize);
         }
 
-        document.addEventListener('mousemove', resizing);
-        document.addEventListener('mouseup', stopResize);
+        document.addEventListener('pointermove', resizing, { passive: false });
+        document.addEventListener('pointerup', stopResize, { passive: false });
       });
 
       canvas.appendChild(container);
@@ -566,6 +594,5 @@ function loadLayout(data) {
 
 // (Optionnel) Pour désélectionner en cliquant ailleurs
 document.body.addEventListener('click', () => {
-  // Désélectionner si on clique ailleurs
   // selectedElement = null;
 }, true);

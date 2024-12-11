@@ -63,6 +63,9 @@ body {
     cursor: default;
   }
   
+  #canvas-container {
+    touch-action: none; /* Evite le scroll/zoom lors des interactions tactiles */
+  }
   /* Styles de base pour les formes */
   .shape {
     position: absolute;
