@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Écran Numérique Interactif</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Inclure Fabric.js via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.2.4/fabric.min.js" integrity="sha512-Gi7rF+Qn+GOMCQsS3swv6e2D1BrhSBOq77gP7I+X5V7FVb3XfVcmXKJw1TZrDbyGKW1WrcqwV5VYwYqc6O1KfQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+    <div id="toolbar">
+        <button id="addShapeBtn">+</button>
+        <input type="color" id="strokeColor" value="#000000" title="Choisir la couleur du trait">
+        <button id="saveBtn">Sauvegarder</button>
+        <button id="loadBtn">Charger</button>
+    </div>
+    <!-- Menu pour ajouter des formes -->
+    <div id="shapeMenu" class="hidden">
+        <h3>Choisir une forme</h3>
+        <button data-shape="circle">Cercle</button>
+        <button data-shape="rectangle">Rectangle</button>
+        <button data-shape="arrow">Flèche</button>
+        <button data-shape="line">Trait</button>
+    </div>
+    <canvas id="c" width="1200" height="800"></canvas>
+    <!-- Input pour charger un fichier JSON -->
+    <input type="file" id="loadFileInput" accept="application/json" style="display:none;">
+    <script src="app.js"></script>
+</body>
+</html>
