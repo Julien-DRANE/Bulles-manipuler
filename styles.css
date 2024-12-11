@@ -32,40 +32,6 @@ body {
     background-color: white;
     border: 1px solid #ccc;
     padding: 10px;
-    z-index: 1000;/* styles.css */
-
-body {
-    margin: 0;
-    padding: 0;
-    background-color: #f0f0f0; /* Légèrement gris */
-    font-family: Arial, sans-serif;
-}
-
-#toolbar {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    z-index: 1000;
-    background-color: rgba(255, 255, 255, 0.9);
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 0 5px rgba(0,0,0,0.3);
-}
-
-#toolbar button, #toolbar input[type="color"] {
-    margin-right: 10px;
-    padding: 10px;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-#shapeMenu {
-    position: fixed;
-    top: 60px;
-    left: 10px;
-    background-color: white;
-    border: 1px solid #ccc;
-    padding: 10px;
     z-index: 1000;
     border-radius: 5px;
     box-shadow: 0 0 5px rgba(0,0,0,0.3);
