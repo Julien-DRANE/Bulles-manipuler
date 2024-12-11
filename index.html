@@ -1,30 +1,74 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Écran Numérique Interactif</title>
-    <link rel="stylesheet" href="styles.css">
-    <!-- Inclure Fabric.js via CDN sans l'attribut integrity -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.2.4/fabric.min.js" crossorigin="anonymous"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Outil de création de formes interactives</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-    <div id="toolbar">
-        <button id="addShapeBtn">Ajouter une Forme</button>
-        <input type="color" id="strokeColor" value="#000000" title="Choisir la couleur du trait">
-        <button id="saveBtn">Sauvegarder</button>
-        <button id="loadBtn">Charger</button>
+  <header>
+    <button id="add-button">+</button>
+    <button id="delete-button">-</button>
+    <button id="style-button">Styler le texte</button>
+    <div id="add-menu" class="hidden">
+      <h3>Ajouter un élément</h3>
+      <label>Type de forme :
+        <select id="shape-type">
+          <option value="rounded-rect">Rectangle arrondi</option>
+          <option value="circle">Cercle</option>
+          <option value="bubble">Bulle (ellipse)</option>
+          <option value="line">Trait</option>
+          <option value="arrow">Flèche</option>
+        </select>
+      </label>
+      <br/>
+      <label>Couleur du trait :
+        <input type="color" id="shape-color" value="#000000"/>
+      </label>
+      <br/>
+      <button id="create-shape">Créer</button>
     </div>
-    <!-- Menu pour ajouter des formes -->
-    <div id="shapeMenu" class="hidden">
-        <h3>Choisir une forme</h3>
-        <button data-shape="circle">Cercle</button>
-        <button data-shape="rectangle">Rectangle</button>
-        <button data-shape="arrow">Flèche</button>
-        <button data-shape="line">Trait</button>
+
+    <!-- Menu de style du texte -->
+    <div id="text-style-menu" class="hidden">
+      <h3>Style du texte</h3>
+      <label>Taille :
+        <select id="font-size-select">
+          <option value="12px">12px</option>
+          <option value="14px" selected>14px</option>
+          <option value="16px">16px</option>
+          <option value="24px">24px</option>
+          <option value="32px">32px</option>
+          <option value="64px">64px</option>
+        </select>
+      </label>
+      <br/>
+      <label>Police :
+        <select id="font-family-select">
+          <option value="sans-serif" selected>Sans-serif</option>
+          <option value="serif">Serif</option>
+          <option value="monospace">Monospace</option>
+          <option value="Arial">Arial</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Times New Roman">Times New Roman</option>
+        </select>
+      </label>
+      <br/>
+      <button id="apply-style">Appliquer</button>
     </div>
-    <canvas id="c" width="1200" height="800"></canvas>
-    <!-- Input pour charger un fichier JSON -->
-    <input type="file" id="loadFileInput" accept="application/json" style="display:none;">
-    <script src="app.js"></script>
+
+    <div id="save-load-menu">
+      <button id="save-button">Sauvegarder</button>
+      <button id="load-button">Charger</button>
+      <input type="file" id="file-input" accept=".json" style="display:none"/>
+    </div>
+  </header>
+
+  <div id="canvas-container">
+    <!-- Les formes et lignes seront insérées ici -->
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>

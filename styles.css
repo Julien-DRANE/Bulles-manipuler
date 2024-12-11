@@ -1,61 +1,120 @@
-/* styles.css */
-
 body {
     margin: 0;
-    padding: 0;
-    background-color: #f0f0f0; /* Légèrement gris */
-    font-family: Arial, sans-serif;
-}
-
-#toolbar {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    z-index: 1000;
-    background-color: rgba(255, 255, 255, 0.9);
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 0 5px rgba(0,0,0,0.3);
-}
-
-#toolbar button, #toolbar input[type="color"] {
-    margin-right: 10px;
-    padding: 10px;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-#shapeMenu {
-    position: fixed;
-    top: 60px;
-    left: 10px;
-    background-color: white;
-    border: 1px solid #ccc;
-    padding: 10px;
-    z-index: 1000;
-    border-radius: 5px;
-    box-shadow: 0 0 5px rgba(0,0,0,0.3);
-}
-
-#shapeMenu h3 {
-    margin-top: 0;
-}
-
-#shapeMenu button {
-    display: block;
-    width: 100%;
-    margin-bottom: 5px;
-    padding: 8px;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.hidden {
+    font-family: sans-serif;
+    background: #f0f0f0;
+  }
+  
+  header {
+    background: #e0e0e0;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: fixed; /* Fixer le header */
+    bottom: 0;       /* Le placer en bas */
+    left: 0;
+    right: 0;
+    z-index: 10000;   /* Le header par-dessus tout */
+  }
+  
+  #add-button, #delete-button, #style-button {
+    font-size: 10px;
+    width: 40px;
+    height: 40px;
+  }
+  
+  /* Classe pour cacher un élément */
+  .hidden {
     display: none;
-}
-
-canvas {
+  }
+  
+  #add-menu {
+    position: absolute;
+    top: -160px; /* Ajustez si nécessaire pour afficher le menu au-dessus du header */
+    left: 10px;
+    background: white;
     border: 1px solid #ccc;
-    margin: 50px;
-    background-color: #ffffff; /* Fond blanc pour le canevas */
-}
+    padding: 10px;
+    z-index: 99999;
+  }
+  
+  #text-style-menu {
+    position: absolute;
+    top: -160px; /* Ajustez si nécessaire */
+    left: 60px;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+    z-index: 99999;
+  }
+  
+  #save-load-menu {
+    margin-left: auto;
+  }
+  
+  #canvas-container {
+    position: relative;
+    width: 100vw;
+    height: calc(100vh - 60px); /* Ajuster selon la hauteur du header */
+    overflow: hidden;
+    background: #f8f8f8;
+    cursor: default;
+  }
+  
+  /* Styles de base pour les formes */
+  .shape {
+    position: absolute;
+    border: 2px solid black;
+    padding: 30px;
+    background: white;
+    overflow: hidden;
+    min-width: 50px;
+    min-height: 30px;
+    cursor: move;
+  }
+  
+  /* Types de formes */
+  .rounded-rect {
+    border-radius: 10px;
+  }
+  
+  .circle {
+    border-radius: 50%;
+  }
+  
+  .bubble {
+    border-radius: 50% / 30%;
+  }
+  
+  /* Conteneur pour les lignes et flèches (SVG) */
+  .line-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 5;
+  }
+  
+  .line-container svg {
+    overflow: visible;
+    pointer-events: none;
+  }
+  
+  .line, .arrow {
+    stroke-width: 2;
+    fill: none;
+    pointer-events: stroke;
+  }
+  
+  /* Poignées de manipulation de lignes */
+  .line-handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: red;
+    border: 2px solid black;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 9999;
+    pointer-events: auto;
+  }
+  
